@@ -1,2 +1,5 @@
 # Group8
-Enoch Kim, Jeffrey Franklin, Julien Berthiaume, Ahmad Almshkawi
+Jeffrey Franklin 0373031
+Ahmad Almshkawi
+Julien Berthiaume
+Enoch Kim
