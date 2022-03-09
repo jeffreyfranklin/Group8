@@ -49,6 +49,7 @@ public class KThread {
 	else {
 	    readyQueue = ThreadedKernel.scheduler.newThreadQueue(false);
 	    readyQueue.acquire(this);	    
+	    joinQueue = ThreadedKernel.scheduler.newThreadQueue(false);
 
 	    currentThread = this;
 	    tcb = TCB.currentTCB();

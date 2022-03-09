@@ -39,8 +39,8 @@ public class ReactWater{
     	if(hCounter >= 2 && oCounter >= 1){
     		Makewater();
     	}
-    	KThread.sleep();
     	conditionLock.release();
+    	KThread.sleep();
     	
     	Machine.interrupt().restore(intStatus);
     	
@@ -65,8 +65,8 @@ public class ReactWater{
     	if(hCounter >= 2 && oCounter >= 1){
     		Makewater();
     	}
-    	KThread.sleep();
     	conditionLock.release();
+    	KThread.sleep();
     	
     	Machine.interrupt().restore(intStatus);
     	
@@ -77,12 +77,6 @@ public class ReactWater{
      **/
     public void Makewater() {
 
-    	boolean intStatus = Machine.interrupt().disable();
-    	
-    	conditionLock.acquire();
-    	while(!conditionLock.isHeldByCurrentThread()){
-    		//Wait
-    	}
     	//H element 1
     	hQueue.nextThread();
     	hCounter--;
@@ -93,9 +87,6 @@ public class ReactWater{
     	oQueue.nextThread();
     	oCounter--;
     	System.out.println("water was made!");
-    	conditionLock.release();
-    	
-    	Machine.interrupt().restore(intStatus);
     	
     } // end of Makewater()
     
@@ -226,7 +217,12 @@ public class ReactWater{
     	for(int i = 0; i < oThreads.length; i++){
     		oThreads[i].fork();
     	}
-    	hThreads[0].join();
+    	for(int i = 0; i < hThreads.length; i++){
+    		hThreads[i].join();
+    	}
+    	for(int i = 0; i < oThreads.length; i++){
+    		oThreads[i].join();
+    	}
     	
     }
     
@@ -268,7 +264,12 @@ public class ReactWater{
     	for(int i = 0; i < hThreads.length; i++){
     		hThreads[i].fork();
     	}
-    	oThreads[0].join();
+    	for(int i = 0; i < oThreads.length; i++){
+    		oThreads[i].join();
+    	}
+    	for(int i = 0; i < hThreads.length; i++){
+    		hThreads[i].join();
+    	}
 	    	
 	}
 	
@@ -322,6 +323,12 @@ public class ReactWater{
     	hThread5.fork();
     	
     	hThread1.join();
+    	hThread2.join();
+    	oThread1.join();
+    	hThread3.join();
+    	hThread4.join();
+    	oThread2.join();
+    	hThread5.join();
 		
 	}
 	
@@ -363,7 +370,12 @@ public class ReactWater{
     	for(int i = 0; i < oThreads.length; i++){
     		oThreads[i].fork();
     	}
-    	hThreads[0].join();
+    	for(int i = 0; i < hThreads.length; i++){
+    		hThreads[i].join();
+    	}
+    	for(int i = 0; i < oThreads.length; i++){
+    		oThreads[i].join();
+    	}
 		
 	}
 	
@@ -405,7 +417,12 @@ public class ReactWater{
     	for(int i = 0; i < hThreads.length; i++){
     		hThreads[i].fork();
     	}
-    	oThreads[0].join();
+    	for(int i = 0; i < oThreads.length; i++){
+    		oThreads[i].join();
+    	}
+    	for(int i = 0; i < hThreads.length; i++){
+    		hThreads[i].join();
+    	}
     	
     }
 	
@@ -459,6 +476,12 @@ public class ReactWater{
     	oThread3.fork();
     	
     	hThread1.join();
+    	hThread2.join();
+    	oThread1.join();
+    	hThread3.join();
+    	hThread4.join();
+    	oThread2.join();
+    	oThread3.join();
 		
 	}
 
@@ -500,7 +523,12 @@ public class ReactWater{
     	for(int i = 0; i < oThreads.length; i++){
     		oThreads[i].fork();
     	}
-    	hThreads[0].join();
+    	for(int i = 0; i < hThreads.length; i++){
+    		hThreads[i].join();
+    	}
+    	for(int i = 0; i < oThreads.length; i++){
+    		oThreads[i].join();
+    	}
     	
     }
 	
@@ -542,7 +570,12 @@ public class ReactWater{
     	for(int i = 0; i < hThreads.length; i++){
     		hThreads[i].fork();
     	}
-    	oThreads[0].join();
+    	for(int i = 0; i < oThreads.length; i++){
+    		oThreads[i].join();
+    	}
+    	for(int i = 0; i < hThreads.length; i++){
+    		hThreads[i].join();
+    	}
     	
     }
 	
@@ -592,11 +625,16 @@ public class ReactWater{
     	oThread2.fork();
     	
     	hThread1.join();
+    	hThread2.join();
+    	oThread1.join();
+    	hThread3.join();
+    	hThread4.join();
+    	oThread2.join();
 		
 	}
 	
 	/**
-	 * There are a large amount of random H and O elements. 100 random H or O elements are
+	 * There are a large amount of random H and O elements. 1000 random H or O elements are
 	 * created to test the performance of the implementation.
 	 */
 	private static void TestCase4(){
@@ -615,7 +653,7 @@ public class ReactWater{
     		}
     	};
     	
-    	KThread[] threads = new KThread[100];
+    	KThread[] threads = new KThread[1000];
     	int numHydrogen = 0;
     	int numOxygen = 0;
     	for(int i = 0; i < threads.length; i++){
@@ -634,7 +672,9 @@ public class ReactWater{
     	for(int i = 0; i < threads.length; i++){
     		threads[i].fork();
     	}
-    	threads[0].join();
+    	for(int i = 0; i < threads.length; i++){
+    		threads[i].join();
+    	}
     	
     }
 
