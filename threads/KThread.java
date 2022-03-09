@@ -191,8 +191,12 @@ public class KThread {
 	Lib.assertTrue(toBeDestroyed == null);
 	toBeDestroyed = currentThread;
 
-
 	currentThread.status = statusFinished;
+	
+	KThread thread = joinQueue.nextThread();
+	if(thread != null){
+		thread.ready();
+	}
 	
 	sleep();
     }
@@ -277,6 +281,19 @@ public class KThread {
 
 	Lib.assertTrue(this != currentThread);
 
+	if(this.status == statusFinished){
+		return;
+	}
+	
+	boolean inStatus = Machine.interrupt().disable();
+	if(KThread.currentThread.isJoined);
+	else{
+		joinQueue.waitForAccess(currentThread);
+		isJoined=true;
+		sleep();
+	}
+
+	Machine.interrupt().restore(inStatus);
     }
 
     /**
@@ -402,6 +419,7 @@ public class KThread {
      */
     public static void selfTest() {
 	Lib.debug(dbgThread, "Enter KThread.selfTest");
+
 	
 	new KThread(new PingTest(1)).setName("forked thread").fork();
 	new PingTest(0).run();
@@ -428,6 +446,7 @@ public class KThread {
      * on the ready queue and not running).
      */
     private int status = statusNew;
+    private boolean isJoined = false;
     private String name = "(unnamed thread)";
     private Runnable target;
     private TCB tcb;
@@ -441,6 +460,7 @@ public class KThread {
     private static int numCreated = 0;
 
     private static ThreadQueue readyQueue = null;
+    private static ThreadQueue joinQueue = null;
     private static KThread currentThread = null;
     private static KThread toBeDestroyed = null;
     private static KThread idleThread = null;
