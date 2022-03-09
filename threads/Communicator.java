@@ -220,7 +220,12 @@ public class Communicator {
     	for(int i = 0; i < listenThreads.length; i++){
     		listenThreads[i].fork();
     	}
-    	speakThreads[0].join();
+    	for(int i = 0; i < speakThreads.length; i++){
+    		speakThreads[i].join();
+    	}
+    	for(int i = 0; i < listenThreads.length; i++){
+    		listenThreads[i].join();
+    	}
     	
     }
     
@@ -273,7 +278,12 @@ public class Communicator {
     	for(int i = 0; i < speakThreads.length; i++){
     		speakThreads[i].fork();
     	}
-    	listenThreads[0].join();
+    	for(int i = 0; i < listenThreads.length; i++){
+    		listenThreads[i].join();
+    	}
+    	for(int i = 0; i < speakThreads.length; i++){
+    		speakThreads[i].join();
+    	}
     	
     }
 
@@ -327,6 +337,10 @@ public class Communicator {
     	speakThread3.fork();
     	
     	speakThread1.join();
+    	listenThread1.join();
+    	speakThread2.join();
+    	listenThread2.join();
+    	speakThread3.join();
     	
     }
     
@@ -373,7 +387,12 @@ public class Communicator {
     	for(int i = 0; i < listenThreads.length; i++){
     		listenThreads[i].fork();
     	}
-    	speakThreads[0].join();
+    	for(int i = 0; i < speakThreads.length; i++){
+    		speakThreads[i].join();
+    	}
+    	for(int i = 0; i < listenThreads.length; i++){
+    		listenThreads[i].join();
+    	}
     	
     }
     
@@ -420,7 +439,12 @@ public class Communicator {
     	for(int i = 0; i < speakThreads.length; i++){
     		speakThreads[i].fork();
     	}
-    	listenThreads[0].join();
+    	for(int i = 0; i < listenThreads.length; i++){
+    		listenThreads[i].join();
+    	}
+    	for(int i = 0; i < speakThreads.length; i++){
+    		speakThreads[i].join();
+    	}
     	
     }
     
@@ -469,6 +493,10 @@ public class Communicator {
     	listenThread3.fork();
     	
     	speakThread1.join();
+    	listenThread1.join();
+    	speakThread2.join();
+    	listenThread2.join();
+    	listenThread3.join();
     	
     }
     
@@ -515,7 +543,12 @@ public class Communicator {
     	for(int i = 0; i < listenThreads.length; i++){
     		listenThreads[i].fork();
     	}
-    	speakThreads[0].join();
+    	for(int i = 0; i < speakThreads.length; i++){
+    		speakThreads[i].join();
+    	}
+    	for(int i = 0; i < listenThreads.length; i++){
+    		listenThreads[i].join();
+    	}
     	
     }
     
@@ -562,7 +595,12 @@ public class Communicator {
     	for(int i = 0; i < speakThreads.length; i++){
     		speakThreads[i].fork();
     	}
-    	listenThreads[0].join();
+    	for(int i = 0; i < listenThreads.length; i++){
+    		listenThreads[i].join();
+    	}
+    	for(int i = 0; i < speakThreads.length; i++){
+    		speakThreads[i].join();
+    	}
     	
     }
     
@@ -608,6 +646,9 @@ public class Communicator {
     	listenThread2.fork();
     	
     	speakThread1.join();
+    	listenThread1.join();
+    	speakThread2.join();
+    	listenThread2.join();
     	
     }
     
@@ -650,7 +691,9 @@ public class Communicator {
     	for(int i = 0; i < threads.length; i++){
     		threads[i].fork();
     	}
-    	threads[0].join();
+    	for(int i = 0; i < threads.length; i++){
+    		threads[i].join();
+    	}
     	
     }
 
