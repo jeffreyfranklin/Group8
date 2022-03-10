@@ -7,6 +7,10 @@ import nachos.machine.*;
  * until a certain time.
  */
 public class Alarm {
+	
+	WaitQueue waitQueue;
+	ReadyQueue readyQueue;
+	
     /**
      * Allocate a new Alarm. Set the machine's timer interrupt handler to this
      * alarm's callback.
@@ -15,9 +19,8 @@ public class Alarm {
      * alarm.
      */
     public Alarm() {
-	Machine.timer().setInterruptHandler(new Runnable() {
-		public void run() { timerInterrupt(); }
-	    });
+    	waitQueue = new WaitQueue();
+    	readyQueue = new ReadyQueue();
     }
 
     /**
@@ -27,7 +30,16 @@ public class Alarm {
      * that should be run.
      */
     public void timerInterrupt() {
-	KThread.currentThread().yield();
+    	KThread.yield();
+		boolean loopFlag = true;
+		while(loopFlag){
+			
+			if(waitQueue.getWaitQueueHead().getWaitNodeWakeTime() <= System.nanoTime()) {
+				readyQueue.addReadyNode(waitQueue.getWaitQueueHead().getWaitNodeThread());
+				waitQueue.removeWaitNode();
+			}
+			
+		}
     }
 
     /**
@@ -45,9 +57,14 @@ public class Alarm {
      * @see	nachos.machine.Timer#getTime()
      */
     public void waitUntil(long x) {
-	// for now, cheat just to get something working (busy waiting is bad)
-	long wakeTime = Machine.timer().getTime() + x;
-	while (wakeTime > Machine.timer().getTime())
-	    KThread.yield();
+    	long wakeTime = System.nanoTime() + x;
+		
+		if(System.nanoTime() >= wakeTime) {
+			KThread.currentThread().ready();
+		}
+		else {
+			WaitNode node = new WaitNode(KThread.currentThread(),wakeTime);
+			waitQueue.addWaitNode(node);
+		}
     }
 }

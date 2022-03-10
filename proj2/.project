@@ -14,4 +14,11 @@
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>nachos/threads/Tester.java</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Julien&apos;s%20Phase%201%20Stuff/Tester.java</locationURI>
+		</link>
+	</linkedResources>
 </projectDescription>
