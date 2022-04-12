@@ -8,6 +8,10 @@ import nachos.userprog.*;
  * A kernel that can support multiple user processes.
  */
 public class UserKernel extends ThreadedKernel {
+	
+	public static UserProcess root = null;
+	private boolean hasRoot;
+	
     /**
      * Allocate a new user kernel.
      */
@@ -93,6 +97,9 @@ public class UserKernel extends ThreadedKernel {
 	super.run();
 
 	UserProcess process = UserProcess.newUserProcess();
+	if(!hasRoot){
+		root = process;
+	}
 	
 	String shellProgram = Machine.getShellProgramName();	
 	Lib.assertTrue(process.execute(shellProgram, new String[] { }));

@@ -19,14 +19,20 @@ import java.io.EOFException;
  * @see	nachos.network.NetProcess
  */
 public class UserProcess {
+	
+	protected OpenFile[] fileTable;
+	
     /**
      * Allocate a new process.
      */
     public UserProcess() {
-	int numPhysPages = Machine.processor().getNumPhysPages();
-	pageTable = new TranslationEntry[numPhysPages];
-	for (int i=0; i<numPhysPages; i++)
-	    pageTable[i] = new TranslationEntry(i,i, true,false,false,false);
+		int numPhysPages = Machine.processor().getNumPhysPages();
+		pageTable = new TranslationEntry[numPhysPages];
+		for (int i=0; i<numPhysPages; i++)
+		    pageTable[i] = new TranslationEntry(i,i, true,false,false,false);
+		fileTable = new OpenFile[16];
+		fileTable[0] = UserKernel.console.openForReading();
+		fileTable[1] = UserKernel.console.openForWriting();
     }
     
     /**
@@ -340,10 +346,14 @@ public class UserProcess {
      */
     private int handleHalt() {
 
-	Machine.halt();
-	
-	Lib.assertNotReached("Machine.halt() did not halt machine!");
-	return 0;
+    	if(this != UserKernel.root){
+    		return 0;
+    	}
+    	
+		Machine.halt();
+		
+		Lib.assertNotReached("Machine.halt() did not halt machine!");
+		return 0;
     }
 
 
@@ -388,16 +398,113 @@ public class UserProcess {
      * @return	the value to be returned to the user.
      */
     public int handleSyscall(int syscall, int a0, int a1, int a2, int a3) {
-	switch (syscall) {
-	case syscallHalt:
-	    return handleHalt();
-
-
-	default:
-	    Lib.debug(dbgProcess, "Unknown syscall " + syscall);
-	    Lib.assertNotReached("Unknown system call!");
-	}
-	return 0;
+    	String filename = "";
+    	if(syscall == syscallCreate || syscall == syscallOpen || syscall == syscallUnlink){
+    		filename = readVirtualMemoryString(a0, 256);
+    	}
+    	switch (syscall) {
+			case syscallHalt:
+			    return handleHalt();
+			case syscallCreate:
+				return syscallCreate(filename);
+			case syscallOpen:
+				return syscallOpen(filename);
+			case syscallRead:
+				return syscallRead(a0, a1, a2);
+			case syscallWrite:
+				return syscallWrite(a0, a1, a2);
+			case syscallClose:
+				return syscallClose(a0);
+			case syscallUnlink:
+				return syscallUnlink(filename);
+			default:
+			    Lib.debug(dbgProcess, "Unknown syscall " + syscall);
+			    Lib.assertNotReached("Unknown system call!");
+		}
+		return 0;
+    }
+    
+    private int syscallCreate(String filename){
+    	
+    	OpenFile file = Machine.stubFileSystem().open(filename, true);
+    	if(file != null){
+    		for(int i = 2; i < fileTable.length; i++){
+    			if(fileTable[i] == null){
+    				fileTable[i] = file;
+    				return i;
+    			}
+    		}
+    	}
+    	return -1;
+    	
+    }
+    
+    private int syscallOpen(String filename){
+    	
+    	OpenFile file = Machine.stubFileSystem().open(filename, false);
+    	if(file != null){
+    		for(int i = 2; i < fileTable.length; i++){
+    			if(fileTable[i] == null){
+    				fileTable[i] = file;
+    				return i;
+    			}
+    		}
+    	}
+    	return -1;
+    	
+    }
+    
+    private int syscallRead(int fileDesc, int bufferAddr, int count){
+    	
+    	OpenFile file = fileTable[fileDesc];
+    	if(file == null){
+    		return -1;
+    	}
+    	byte[] buffer = new byte[count];
+    	int bytesRead = file.read(buffer, 0, count);
+    	writeVirtualMemory(bufferAddr, buffer);
+    	return bytesRead;
+    	
+    }
+    
+    private int syscallWrite(int fileDesc, int bufferAddr, int count){
+    	
+    	OpenFile file = fileTable[fileDesc];
+    	if(file == null){
+    		return -1;
+    	}
+    	byte[] buffer = new byte[count];
+    	readVirtualMemory(bufferAddr, buffer);
+    	int bytesWritten = file.write(buffer, 0, count);
+    	return bytesWritten;
+    	
+    }
+    
+    private int syscallClose(int fileDesc){
+    	
+    	OpenFile file = fileTable[fileDesc];
+    	if(file != null){
+    		file.close();
+    		fileTable[fileDesc] = null;
+    		return 0;
+    	}
+    	return -1;
+    	
+    }
+    
+    private int syscallUnlink(String filename){
+    	
+    	OpenFile file = Machine.stubFileSystem().open(filename, false);
+    	for(int i = 2; i < fileTable.length; i++){
+    		if(fileTable[i] == file){
+    			fileTable[i].close();
+    		}
+    	}
+    	if(ThreadedKernel.fileSystem.remove(filename)){
+    		return 0;
+    	}
+    	return -1;
+    	
     }
 
     /**
