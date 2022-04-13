@@ -4,6 +4,8 @@ import nachos.machine.*;
 import nachos.threads.*;
 import nachos.userprog.*;
 
+import java.util.LinkedList;
+
 /**
  * A kernel that can support multiple user processes.
  */
@@ -27,6 +29,11 @@ public class UserKernel extends ThreadedKernel {
 	super.initialize(args);
 
 	console = new SynchConsole(Machine.console());
+
+    int numPhysPages = Machine.processor().getNumPhysPages();
+        for (int i = 0; i < numPhysPages; ++i) {
+            openPages.add(i);
+        }
 	
 	Machine.processor().setExceptionHandler(new Runnable() {
 		public void run() { exceptionHandler(); }
@@ -51,6 +58,26 @@ public class UserKernel extends ThreadedKernel {
 	while (c != 'q');
 
 	System.out.println("");
+    }
+
+
+    public static int allocatePages(int requestedNumber) {
+        boolean interruptStatus = Machine.interrupt().disable();
+
+        LinkedList<Integer> allocatedPages = new LinkedList<Integer>();
+        if (openPages.isEmpty() == false && requestedNumber > 0) {
+            for (int i = 0; i < requestedNumber; ++i) {
+            allocatedPages.add(openPages.removeFirst());
+        }
+        }
+        Machine.interrupt().restore(interruptStatus);
+        return allocatedPages;
+    }
+
+    public static void deallocatePages(LinkedList allocatedPages) {
+        boolean interruptStatus = Machine.interrupt().disable();
+        openPages.addAll(allocatedPages);
+        Machine.interrupt().restore(interruptStatus);
     }
 
     /**
@@ -119,4 +146,6 @@ public class UserKernel extends ThreadedKernel {
 
     // dummy variables to make javac smarter
     private static Coff dummy1 = null;
+
+    private static LinkedList<Integer> openPages = new LinkedList<Integer>();
 }
