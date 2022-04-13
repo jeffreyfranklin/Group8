@@ -22,6 +22,11 @@ public class UserProcess {
 	
 	protected OpenFile[] fileTable;
 	
+	private Lock conditionLock;
+	public int processID;
+	public UserProcess parentProcess;
+	private int exitStatus = -2;
+	
     /**
      * Allocate a new process.
      */
@@ -33,6 +38,7 @@ public class UserProcess {
 		fileTable = new OpenFile[16];
 		fileTable[0] = UserKernel.console.openForReading();
 		fileTable[1] = UserKernel.console.openForWriting();
+		conditionLock = new Lock();
     }
     
     /**
@@ -399,12 +405,19 @@ public class UserProcess {
      */
     public int handleSyscall(int syscall, int a0, int a1, int a2, int a3) {
     	String filename = "";
-    	if(syscall == syscallCreate || syscall == syscallOpen || syscall == syscallUnlink){
+    	if(syscall == syscallCreate || syscall == syscallOpen || syscall == syscallUnlink
+    			|| syscall == syscallExec){
     		filename = readVirtualMemoryString(a0, 256);
     	}
     	switch (syscall) {
 			case syscallHalt:
 			    return handleHalt();
+			case syscallExit:
+				syscallExit(a0);
+			case syscallExec:
+				return syscallExec(filename, a1, a2);
+			case syscallJoin:
+				return syscallJoin(a0, a1);
 			case syscallCreate:
 				return syscallCreate(filename);
 			case syscallOpen:
@@ -422,6 +435,103 @@ public class UserProcess {
 			    Lib.assertNotReached("Unknown system call!");
 		}
 		return 0;
+    }
+    
+    private void syscallExit(int status){
+    	
+    	unloadSections();
+    	for(int i = 2; i < fileTable.length; i++){
+			if(fileTable[i] != null){
+				fileTable[i].close();
+			}
+		}
+    	for(int i = 0; i < UserKernel.processTable.length; i++){
+    		if(UserKernel.processTable[i] != null &&
+    				UserKernel.processTable[i].parentProcess == this){
+    			UserKernel.processTable[i].parentProcess = null;
+    		}
+    	}
+    	exitStatus = status;
+    	
+    	boolean isEmpty = true;
+    	for(int i = 0; i < UserKernel.processTable.length; i++){
+    		if(UserKernel.processTable[i] != null){
+    			isEmpty = false;
+    			break;
+    		}
+    	}
+    	if(isEmpty){
+    		Machine.halt();
+    	}
+    	
+    }
+    
+    private int syscallExec(String filename, int argc, int argvAddr){
+    	
+    	if(argc < 1){
+    		return -1;
+    	}
+    	String extension = filename.toLowerCase().substring(filename.length() - 5);
+    	if(!extension.equals(".coff")){
+    		return -1;
+    	}
+    	
+    	conditionLock.acquire();
+    	while(!conditionLock.isHeldByCurrentThread()){
+    		//Wait
+    	}
+    	UserProcess childProcess = UserProcess.newUserProcess();
+    	for(int i = 0; i < UserKernel.processTable.length; i++){
+    		if(UserKernel.processTable[i] == null){
+    			UserKernel.processTable[i] = childProcess;
+    			childProcess.processID = UserKernel.nextProcessID;
+    			UserKernel.nextProcessID++;
+    			childProcess.parentProcess = this;
+    			break;
+    		}
+    	}
+    	String[] args = new String[argc];
+    	byte[] buffer = new byte[4];
+    	for(int i = 0; i < argc; i++){
+    		readVirtualMemory(argvAddr + (i * 4), buffer);
+    		args[i] = readVirtualMemoryString(Lib.bytesToInt(buffer, 0), 256);
+    	}
+    	childProcess.execute(filename, args);
+    	conditionLock.release();
+    	
+    	return childProcess.processID;
+    	
+    }
+    
+    private int syscallJoin(int pidToJoin, int statusAddr){
+    	
+    	saveState();
+    	
+    	UserProcess child = null;
+    	boolean canJoin = false;
+    	for(int i = 0; i < UserKernel.processTable.length; i++){
+    		if(UserKernel.processTable[i] != null &&
+    				UserKernel.processTable[i].parentProcess == this &&
+    				UserKernel.processTable[i].processID == pidToJoin){
+    			child = UserKernel.processTable[i];
+    			canJoin = true;
+    			break;
+    		}
+    	}
+    	if(!canJoin){
+    		return -1;
+    	}
+    	child.parentProcess = null;
+    	if(child.exitStatus == -2){
+    		child.syscallExit(0);
+    	}
+    	byte[] buffer = Lib.bytesFromInt(child.exitStatus);
+    	writeVirtualMemory(statusAddr, buffer);
+    	
+    	restoreState();
+    	
+    	return child.exitStatus;
+    	
     }
     
     private int syscallCreate(String filename){

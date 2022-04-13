@@ -12,11 +12,17 @@ public class UserKernel extends ThreadedKernel {
 	public static UserProcess root = null;
 	private boolean hasRoot;
 	
+	public static UserProcess[] processTable;
+	public static int nextProcessID = 1;
+	
     /**
      * Allocate a new user kernel.
      */
     public UserKernel() {
-	super();
+    	super();
+    	
+		processTable = new UserProcess[16];
+    	
     }
 
     /**
