@@ -153,7 +153,6 @@ public class UserProcess {
 	int pageOffset = Processor.offsetFromAddress(vaddr);
 	int bytesLeftToCopy  = length;
 	int bufferOffset = offset;
-	byte[] memory = Machine.processor().getMemory();
    
     int paddr = -1;
     
@@ -170,7 +169,7 @@ public class UserProcess {
       if(paddr < 0 || paddr >= memory.length){
         return bytesCopied;
       }
-      bytesToEndOfPage = pageSize - pageOffset;
+      int bytesToEndOfPage = pageSize - pageOffset;
       int bytesToCopy = Math.min(bytesLeftToCopy , bytesToEndOfPage);
       System.arraycopy(memory, paddr, data, bufferOffset, bytesToCopy);
       bytesCopied += bytesToCopy;
@@ -224,7 +223,6 @@ public class UserProcess {
 	int pageOffset = Processor.offsetFromAddress(vaddr);
 	int bytesLeftToCopy  = length;
 	int bufferOffset = offset;
-	byte[] memory = Machine.processor().getMemory();
    
     int paddr = -1;
     
@@ -241,7 +239,7 @@ public class UserProcess {
       if(paddr < 0 || paddr >= memory.length){
         return bytesCopied;
       }
-      bytesToEndOfPage = pageSize - pageOffset;
+      int bytesToEndOfPage = pageSize - pageOffset;
       int bytesToCopy = Math.min(bytesLeftToCopy , bytesToEndOfPage);
       System.arraycopy(data, bufferOffset, memory, paddr, bytesToCopy);
       bytesCopied += bytesToCopy;
@@ -389,7 +387,7 @@ return bytesCopied;
      * Release any resources allocated by <tt>loadSections()</tt>.
      */
     protected void unloadSections() {
-    	inkedList<Integer> allocatedPages = new LinkedList<Integer>();
+    	LinkedList<Integer> allocatedPages = new LinkedList<Integer>();
     	allocatedPages.addAll(pageTable);
     	UserKernel.deallocatePages(allocatedPages);
     	coff.close();
